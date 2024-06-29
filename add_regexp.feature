@@ -23,8 +23,12 @@ Feature: Test creating a Multianswer (Cloze) question with REGEXP sub-question a
     And I click on "Add" "button" in the "Choose a question type to add" "dialogue"
     And I set the field "Question name" to "multianswer-00"
     And I set the field "Question text" to "The French flag is {1:REGEXP:%10%blue, white and red#Congratulations! ~%0%--.*blue.*#Missing blue!}."
-    And I press "id_submitbutton"
-    Then I should see " One of the answers should have a score of 100% so it is possible to get full marks for this question."
+    And I press "id_analyzequestion"
+    Then I should see "Answer 1 must be a correct answer (grade = 100%) and it will not be analysed as a regular expression."
+    Then I should see "One of the answers should have a score of 100% so it is possible to get full marks for this question."
+    And I set the field "Question text" to "The French flag is {1:REGEXP:%100%blue, white and red#Congratulations! ~%100%((white, blue and red|red, white and blue)}."
+    And I press "id_analyzequestion"
+    Then I should see "ERROR! Check your parentheses or square brackets!"
     And I set the field "Question text" to "The French flag is {1:REGEXP:%100%blue, white and red#Congratulations! ~%0%--.*blue.*#Missing blue!}."
     And I press "id_submitbutton"
     Then I should see "multianswer-00" in the "categoryquestions" "table"
@@ -71,12 +75,15 @@ Feature: Test creating a Multianswer (Cloze) question with REGEXP sub-question a
   @javascript
   Scenario: Create a Cloze question with REGEXP sub-question with permutations and Preview it
     # Note: it's not possible to generate permutations in the multianswer question; we use a full-blown regular expression.
-    # In that regular expression the pipe characters | must be escaped.
     When I am on the "Course 1" "core_question > course question bank" page logged in as teacher
-    And I add a "Embedded answers (Cloze)" question filling the form with:
-      | Question name        | multianswer-01                                     |
-      | Question text        | The French flag is {1:REGEXP:%100%blue, white and red#Congratulations!~%0%--.*blue.*#Missing blue!~%100%(blue, white(,\| and) red\|blue, red(,\| and) white\|white, red(,\| and) blue\|white, blue(,\| and) red\|red, blue(,\| and) white\|red, white(,\| and) blue)#One of the 12 accepted answers}.     |
-      | General feedback     | The general feedback.|
+    And I press "Create a new question ..."
+    And I set the field "Embedded answers (Cloze)" to "1"
+    And I click on "Add" "button" in the "Choose a question type to add" "dialogue"
+    And I set the field "Question name" to "multianswer-01"
+    And I set the field "Question text" to "The French flag is {1:REGEXP:%100%blue, white and red#Congratulations!~%0%--.*blue.*#Missing blue!~%100%(blue, white(,| and) red|blue, red(,| and) white|white, red(,| and) blue|white, blue(,| and) red|red, blue(,| and) white|red, white(,| and) blue)#One of the 12 accepted answers}."
+    And I set the field "General feedback" to "The general feedback."
+    And I press "id_submitbutton"
+
     Then I should see "multianswer-01" in the "categoryquestions" "table"
 
     # Preview it.
@@ -95,6 +102,7 @@ Feature: Test creating a Multianswer (Cloze) question with REGEXP sub-question a
     Then I should see "Congratulations!"
 
     And I press "Start again"
+    And I pause
     And I set the field with xpath "//input[contains(@id, '1_sub1_answer')]" to "white and red"
     And I press "Check"
     And I click on "(//a[contains(@class, 'feedbacktrigger')])" "xpath_element"
@@ -105,4 +113,36 @@ Feature: Test creating a Multianswer (Cloze) question with REGEXP sub-question a
     And I press "Check"
     And I click on "(//a[contains(@class, 'feedbacktrigger')])" "xpath_element"
     Then I should see "One of the 12 accepted answers"
+  
+  @javascript
+  Scenario: Create a Cloze question with REGEXP sub-question with match case
+    When I am on the "Course 1" "core_question > course question bank" page logged in as teacher
+    And I press "Create a new question ..."
+    And I set the field "Embedded answers (Cloze)" to "1"
+    And I click on "Add" "button" in the "Choose a question type to add" "dialogue"
+    And I set the field "Question name" to "multianswer-01"
+    And I set the field "Question text" to "What colours is the French flag?{1:REGEXP_C:%100%It's blue, white and red.#Congratulations!~it's.*#Please begin with a capital letter.}"
+    And I set the field "General feedback" to "The general feedback."
+    And I press "id_submitbutton"
+
+    Then I should see "multianswer-01" in the "categoryquestions" "table"
+
+    # Preview it.
+    And I choose "Preview" action for "multianswer-01" in the question bank
+    And I should see "What colours is the French flag?"
+    # Set behaviour options
+    And I set the following fields to these values:
+      | behaviour | immediatefeedback |
+    And I press "saverestart"
     
+    And I set the field with xpath "//input[contains(@id, '1_sub1_answer')]" to "it's blue, white and red."
+    And I press "Check"
+    # Click on feedbacktrigger for blank #1
+    And I click on "(//a[contains(@class, 'feedbacktrigger')])" "xpath_element"    
+    Then I should see "Please begin with a capital letter."
+
+    And I press "Start again"
+    And I set the field with xpath "//input[contains(@id, '1_sub1_answer')]" to "It's blue, white and red."
+    And I press "Check"
+    And I click on "(//a[contains(@class, 'feedbacktrigger')])" "xpath_element"
+    Then I should see "Congratulations"

@@ -1,4 +1,5 @@
 # moodle-multianswer_regexp_hacks
+23:13 29/06/2024
 This set of 3 files will enable you to use my REGEXP question type inside a cloze/multianswer question. 
 
 Download the multianswer_regexp_hacks.zip file to your computer; unzip and copy the 3 php files to YOURMOODLE/question\type\multianswer folder where they will replace the existing PHP files of the same name. Files: edit_multianswer_form.php questiontype.php renderer.php
